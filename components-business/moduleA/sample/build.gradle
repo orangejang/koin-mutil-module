@@ -7,7 +7,6 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId "com.example.koinapp"
         minSdkVersion 21
         targetSdkVersion 33
         versionCode 1
@@ -34,17 +33,14 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
 
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation project(':components-framework:moduleD')
-    implementation project(':components-business:moduleA:api')
+    // 依赖模块A
     implementation project(':components-business:moduleA:impl')
-    implementation project(':components-business:moduleB:api')
+    // 依赖模块B
     implementation project(':components-business:moduleB:impl')
-    implementation project(':components-platform:moduleC:api')
+    // 依赖模块C
     implementation project(':components-platform:moduleC:impl')
 }

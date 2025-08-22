@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.modulea.IUserService
-import com.example.moduleb.INumberService
+import com.example.module.a.api.IUserService
+import com.example.module.b.api.INumberService
 import org.koin.android.ext.android.inject
 
 class MainActivity : AppCompatActivity() {
