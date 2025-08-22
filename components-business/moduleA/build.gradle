@@ -38,7 +38,7 @@ dependencies {
     implementation "io.insert-koin:koin-android:$koin_version"
 
     // 依赖模块B
-    implementation project(':moduleB')
+    implementation project(':components-business:moduleB')
     // 依赖模块C
-    implementation project(':moduleC')
+    implementation project(':components-platform:moduleC')
 }

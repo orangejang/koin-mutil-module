@@ -2,6 +2,6 @@
 /.gradle/
 /local.properties
 /app/build/
-/moduleA/build
-/moduleB/build
-/moduleC/build
+/components-platform/moduleC/build/
+/components-business/moduleA/build/
+/components-business/moduleB/build/
