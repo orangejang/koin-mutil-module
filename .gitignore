@@ -4,8 +4,10 @@
 /app/build/
 /components-business/moduleA/api/build/
 /components-business/moduleA/impl/build/
+/components-business/moduleA/sample/build/
 /components-business/moduleB/api/build/
 /components-business/moduleB/impl/build/
 /components-platform/moduleC/api/build/
 /components-platform/moduleC/impl/build/
-/components-framework/core/build/
+/components-framework/core/impl/build/
+/components-framework/core/sample/build/

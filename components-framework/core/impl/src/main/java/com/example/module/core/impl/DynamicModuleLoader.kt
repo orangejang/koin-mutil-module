@@ -1,4 +1,4 @@
-package com.example.module.d
+package com.example.module.core.impl
 
 import org.koin.core.Koin
 import org.koin.core.context.GlobalContext
