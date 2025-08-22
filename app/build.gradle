@@ -39,8 +39,8 @@ dependencies {
 
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
+    implementation project(':components-framework:core')
 
-    implementation project(':components-framework:moduleD')
     implementation project(':components-business:moduleA:api')
     implementation project(':components-business:moduleA:impl')
     implementation project(':components-business:moduleB:api')
