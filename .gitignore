@@ -1,3 +1,7 @@
 /.idea/
 /.gradle/
 /local.properties
+/app/build/
+/moduleA/build
+/moduleB/build
+/moduleC/build
