@@ -1,4 +1,4 @@
-package com.example.koinapp
+package com.example.module.core.impl
 
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
@@ -21,16 +21,8 @@ class KoinApplication : Application() {
             // 提供Android上下文
             androidContext(this@KoinApplication)
             // 加载所有模块
-            modules(
-                listOf(
-                    // app模块
-                    appModule,
-                    // moduleA模块
-                    moduleAModule,
-                    // moduleB模块
-                    moduleBModule
-                )
-            )
+            modules()
+
         }
     }
 }

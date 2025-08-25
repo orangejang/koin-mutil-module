@@ -26,11 +26,11 @@ class DynamicModuleLoader {
     suspend fun loadModules() {
         val config = fetchConfig()
         config.forEach { (moduleName, shouldLoad) ->
-            when (moduleName) {
-                "moduleA" -> handleModule(shouldLoad, moduleAModule)
-                "moduleB" -> handleModule(shouldLoad, moduleBModule)
-                "moduleC" -> handleModule(shouldLoad, moduleCModule)
-            }
+//            when (moduleName) {
+//                "moduleA" -> handleModule(shouldLoad, moduleAModule)
+//                "moduleB" -> handleModule(shouldLoad, moduleBModule)
+//                "moduleC" -> handleModule(shouldLoad, moduleCModule)
+//            }
         }
     }
 
