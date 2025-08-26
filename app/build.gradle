@@ -55,7 +55,7 @@ dependencies {
     implementation project(':components-capability:moduleC:impl')
 
     // 基础层core
-    implementation project(':components-core:core:impl')
+    implementation project(':components-core:moduleE:impl')
 }
 
 ksp {

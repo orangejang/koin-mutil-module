@@ -48,5 +48,5 @@ dependencies {
     implementation project(':components-business:moduleB:api')
     // 依赖模块C
     implementation project(':components-capability:moduleC:api')
-    implementation project(':components-core:core:impl')
+    implementation project(':components-core:moduleE:impl')
 }

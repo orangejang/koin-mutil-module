@@ -9,8 +9,9 @@
 /components-business/moduleB/impl/build/
 /components-capability/moduleC/api/build/
 /components-capability/moduleC/impl/build/
-/components-core/core/impl/build/
-/components-core/core/sample/build/
+/components-core/moduleE/impl/build/
+/components-core/moduleE/sample/build/
 /components-build/annotation/build/
 /components-build/processor/build/
 /build/
+/components-presentation/moduleD/build/
