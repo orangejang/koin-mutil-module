@@ -10,7 +10,6 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSNode
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
@@ -25,6 +24,10 @@ class KoinModuleSymbolProcessor(
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
+
+    companion object {
+        private const val FILE_NAME = "koin-modules.txt"
+    }
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(KoinModule::class.java.canonicalName)
@@ -45,12 +48,13 @@ class KoinModuleSymbolProcessor(
 
     private fun writeToSharedFile(packageName: String, functionName: String) {
         try {
-            val sharedDir = File("build/generated/koin")
+            val filePath = options["koin.modules.collect.result.path"]
+            val sharedDir = File(filePath)
             if (!sharedDir.exists()) {
                 sharedDir.mkdirs()
             }
 
-            val sharedFile = File(sharedDir, "koin-modules.txt")
+            val sharedFile = File(sharedDir, FILE_NAME)
             val moduleInfo = "$packageName:$functionName"
 
             // 读取现有内容，避免重复
@@ -77,7 +81,8 @@ class KoinModuleSymbolProcessor(
             val moduleFunctions = mutableListOf<Pair<String, String>>()
             // 从共享文件读取所有模块信息
             try {
-                val moduleInfoFile = File("build/generated/koin/koin-modules.txt")
+                val filePath = options["koin.modules.collect.result.path"] + "/" + FILE_NAME
+                val moduleInfoFile = File(filePath)
                 if (moduleInfoFile.exists()) {
                     val allModuleInfo = moduleInfoFile.readLines()
 
@@ -176,33 +181,7 @@ class KoinModuleSymbolProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
         return KoinModuleSymbolProcessor(
             environment.codeGenerator,
-            object : KSPLogger {
-                override fun error(
-                    message: String,
-                    symbol: KSNode?
-                ) {
-                    println("KoinModuleSymbolProcessor Error: $message")
-                }
-
-                override fun exception(e: Throwable) {
-                    println("KoinModuleSymbolProcessor Exception: ${e.message}")
-                }
-
-                override fun info(message: String, symbol: KSNode?) {
-                    println("KoinModuleSymbolProcessor Info: $message")
-                }
-
-                override fun logging(
-                    message: String,
-                    symbol: KSNode?
-                ) {
-                    println("KoinModuleSymbolProcessor Logging: $message")
-                }
-
-                override fun warn(message: String, symbol: KSNode?) {
-                    println("KoinModuleSymbolProcessor Warn: $message")
-                }
-            },
+            environment.logger,
             environment.options
         )
     }
