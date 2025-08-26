@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Presentation Module</string>
+    <string name="hello_presentation">Hello from Presentation Layer!</string>
+    <string name="load_data">加载数据</string>
+</resources>

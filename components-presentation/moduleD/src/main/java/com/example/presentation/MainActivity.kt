@@ -1,4 +1,4 @@
-package com.example.koinapp
+package com.example.presentation
 
 import android.os.Bundle
 import android.util.Log
@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() {
 
     // 通过Koin注入UserService和NumberService
     // 注意：虽然UserService在moduleA中，NumberService在moduleB中
-    // 但我们可以在app模块中直接注入并使用它们
+    // 但我们可以在表现层中直接注入并使用它们
     private val userService: IUserService by inject()
     private val numberService: INumberService by inject()
 
@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         // 输出结果
         val resultText = """
+            [表现层 - ModuleD]
             用户ID: $userId
             用户名称: $userName
             用户年龄: $userAge
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             是否为偶数: $isEven
         """.trimIndent()
 
-        Log.d("MainActivity", resultText)
+        Log.d("PresentationLayer", resultText)
 
         // 显示在界面上
         findViewById<TextView>(R.id.textResult).text = resultText

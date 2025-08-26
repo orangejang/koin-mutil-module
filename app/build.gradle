@@ -44,13 +44,18 @@ dependencies {
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation project(':components-core:core:impl')
-    implementation project(':components-business:moduleA:api')
+    // 依赖表现层moduleD
+    implementation project(':components-presentation:moduleD')
+
+    // 业务层moduleA, moduleB
     implementation project(':components-business:moduleA:impl')
-    implementation project(':components-business:moduleB:api')
     implementation project(':components-business:moduleB:impl')
-    implementation project(':components-capability:moduleC:api')
+
+    // 能力层moduleC
     implementation project(':components-capability:moduleC:impl')
+
+    // 基础层core
+    implementation project(':components-core:core:impl')
 }
 
 ksp {

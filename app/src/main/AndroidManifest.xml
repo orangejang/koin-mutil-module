@@ -6,17 +6,9 @@
         android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/icon_launcher"
-        android:label="Koin模块通信示例"
+        android:label="Koin多模块通信示例"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

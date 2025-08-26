@@ -1,9 +1,5 @@
 // Koin 依赖配置文件
 // 用于统一管理 annotation 和 processor 的依赖版本和配置
-//dependencies {
-//    implementation project(':components-build:annotation')
-//    ksp project(':components-build:processor')
-//}
 
 ext {
     // Koin 相关版本配置
@@ -22,6 +18,12 @@ def applyKoinDependencies(Project project) {
         ksp "${koinGroupId}:koin-processor:${koinProcessorVersion}"
     }
 }
+
+// 本地依赖，用于开发阶段
+//dependencies {
+//    implementation project(':components-build:annotation')
+//    ksp project(':components-build:processor')
+//}
 
 // 为当前项目应用 Koin 依赖
 if (project.plugins.hasPlugin('com.google.devtools.ksp')) {
