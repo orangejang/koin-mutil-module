@@ -1,199 +1,357 @@
 # Koin Multi-Module Android Project
 
-这是一个基于Koin依赖注入框架的Android多模块项目，展示了如何在复杂的模块化架构中使用Koin进行依赖管理和模块组织。
+一个基于Koin依赖注入框架的Android多模块项目，展示了现代Android应用的模块化架构设计和最佳实践。
 
-## 项目架构
+## 🏗️ 项目架构
 
-### 模块结构
+### 架构概览
+
+本项目采用分层模块化架构，遵循Clean Architecture原则，通过Koin实现依赖注入，确保各模块间的松耦合和高内聚。
 
 ```
-koin-mutil-module/
+koin-multi-module/
 ├── app/                           # 主应用模块
-├── components-build/              # 构建相关组件
-│   ├── annotation/               # 自定义注解
-│   └── processor/                # KSP注解处理器
-├── components-business/           # 业务逻辑组件
-│   ├── moduleA/
-│   │   ├── api/                  # 模块A的API接口
-│   │   ├── impl/                 # 模块A的实现
-│   │   └── sample/               # 模块A的示例
-│   └── moduleB/
-│       ├── api/                  # 模块B的API接口
-│       └── impl/                 # 模块B的实现
-├── components-core/          # 框架层组件
-│   └── core/
-│       ├── impl/                 # 核心框架实现
-│       └── sample/               # 核心框架示例
-├── components-capability/           # 平台层组件
-│   └── moduleC/
-│       ├── api/                  # 模块C的API接口
-│       └── impl/                 # 模块C的实现
-└── tools/                        # 工具和配置
+├── components-presentation/       # 表现层组件
+│   └── moduleD/                  # UI模块
+├── components-business/          # 业务层组件
+│   ├── moduleA/                  # 业务模块A
+│   │   ├── api/                  # 对外接口
+│   │   ├── impl/                 # 具体实现
+│   │   └── sample/               # 示例代码
+│   └── moduleB/                  # 业务模块B
+│       ├── api/                  # 对外接口
+│       └── impl/                 # 具体实现
+├── components-capability/        # 能力层组件
+│   └── moduleC/                  # 通用能力模块
+│       ├── api/                  # 对外接口
+│       └── impl/                 # 具体实现
+├── components-core/              # 核心层组件
+│   └── moduleE/                  # 核心服务模块
+│       ├── impl/                 # 核心实现
+│       └── sample/               # 示例代码
+├── components-build/             # 构建工具组件
+│   ├── annotation/               # 注解处理器
+│   └── processor/                # 编译时处理器
+└── tools/                        # 构建工具和配置
     └── gradle/                   # Gradle配置文件
 ```
 
-### 架构分层
+### 🎯 设计思想
 
-- **App Layer**: 应用程序入口，负责整合所有模块
-- **Business Layer**: 业务逻辑模块，包含具体的业务功能实现
-- **Framework Layer**: 框架层，提供核心的应用框架和基础设施
-- **Platform Layer**: 平台层，提供平台相关的功能和服务
+#### 1. 分层架构设计
 
-## 技术栈
+**表现层 (Presentation Layer)**
 
-- **Kotlin**: 主要开发语言
-- **Android Gradle Plugin**: 7.4.2
-- **Kotlin**: 1.8.22
-- **Koin**: 依赖注入框架
-- **KSP (Kotlin Symbol Processing)**: 1.8.22-1.0.11，用于代码生成
-- **KotlinPoet**: 用于生成Kotlin代码
+- 负责UI展示和用户交互
+- 包含Activity、Fragment、ViewModel等
+- 依赖业务层接口，不直接依赖具体实现
 
-## 核心特性
+**业务层 (Business Layer)**
 
-### 1. 自动化依赖注入
+- 包含核心业务逻辑和用例
+- 通过API模块暴露接口，通过Impl模块提供实现
+- 实现业务规则和数据处理逻辑
 
-项目使用自定义的`@KoinModule`注解来标记Koin模块：
+**能力层 (Capability Layer)**
 
+- 提供通用能力和工具类
+- 为业务层提供基础服务支持
+- 包含网络、存储、工具类等
+
+**核心层 (Core Layer)**
+
+- 提供最基础的核心服务
+- 包含应用级别的通用组件
+- 为其他层提供基础设施支持
+
+#### 2. 模块化设计原则
+
+**API/Impl分离**
+
+- API模块：定义接口契约，供其他模块依赖
+- Impl模块：提供具体实现，通过Koin注入
+- 实现了接口与实现的解耦，提高了可测试性
+
+**依赖方向控制**
+
+- 高层模块不依赖低层模块，都依赖于抽象
+- 抽象不依赖细节，细节依赖抽象
+- 通过依赖注入实现控制反转
+
+**单一职责原则**
+
+- 每个模块都有明确的职责边界
+- 模块内部高内聚，模块间低耦合
+- 便于维护和扩展
+
+#### 3. Koin依赖注入架构
+
+**模块化注入**
 ```kotlin
-@KoinModule
-fun moduleAModule() = module {
-        // 模块A的依赖配置
-    }
-```
-
-### 2. 自动模块收集
-
-通过KSP注解处理器自动收集所有标记了`@KoinModule`的函数，并生成`KoinModules`类：
-
-```kotlin
-object KoinModules {
-    fun getAllModules(): List<Module> {
-        // 自动生成的模块收集逻辑
-    }
+// 每个模块定义自己的Koin模块
+val moduleAModule = module {
+    single<IUserService> { UserServiceImpl(get(), get()) }
+    factory<INameService> { INameServiceFactory.create() }
 }
 ```
 
-### 3. 统一依赖管理
+**分层注入**
 
-所有impl模块都依赖于`tools/gradle/koin-dependencies.gradle`文件，确保Koin依赖的版本一致性。
+- 表现层注入ViewModel和UseCase
+- 业务层注入Repository和Service
+- 数据层注入DataSource和API
 
-## 快速开始
+**作用域管理**
 
-### 环境要求
+- Single：单例模式，应用级别共享
+- Factory：每次注入创建新实例
+- Scoped：特定作用域内共享
+
+### 🔧 构建配置架构
+
+#### 统一配置管理
+
+项目采用分层Gradle配置架构，实现配置的统一管理和复用：
+
+```
+tools/gradle/
+├── common-android-config.gradle    # Android应用配置
+├── common-library-config.gradle    # Android库配置
+└── common-processor-config.gradle  # Koin处理器配置
+```
+
+**Android应用配置 (common-android-config.gradle)**
+
+- Android Application模块专用配置
+- 包含完整的Android SDK版本管理
+- 统一的Java/Kotlin编译配置
+- 应用级通用依赖（Kotlin标准库、Core KTX、Koin等）
+- 构建类型和编译选项配置
+
+**Android库配置 (common-library-config.gradle)**
+
+- Android Library模块专用配置
+- 与应用配置保持一致的SDK版本和编译配置
+- 添加了Lint配置以避免构建中断
+- 库模块通用依赖管理
+- 不包含applicationId等应用特有配置
+
+**Koin处理器配置 (common-processor-config.gradle)**
+
+- Koin注解处理器统一配置
+- KSP (Kotlin Symbol Processing) 依赖管理
+- 注解版本和处理器版本统一控制
+- 支持本地开发和远程依赖两种模式
+- 自动应用KSP配置和参数设置
+
+#### 使用方式
+
+**Android应用模块 (app)**
+
+```gradle
+// 应用Android应用配置
+apply from: rootProject.file('tools/gradle/common-android-config.gradle')
+```
+
+**Android库模块 (各业务模块)**
+
+```gradle
+// 应用Android库配置
+apply from: rootProject.file('tools/gradle/common-library-config.gradle')
+// 如需Koin注解处理，额外应用处理器配置
+apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
+```
+
+#### 配置优势
+
+1. **版本统一管理**: 所有模块使用相同的SDK版本和依赖版本
+2. **配置复用**: 避免在每个模块中重复配置相同内容
+3. **维护便利**: 版本升级只需修改配置文件，自动应用到所有模块
+4. **类型区分**: 针对不同类型模块提供专门的配置
+5. **灵活组合**: 模块可根据需要选择性应用不同配置
+
+### 📦 模块依赖关系
+
+```mermaid
+graph TD
+    A[app] --> B[moduleD - Presentation]
+    B --> C[moduleA/api - Business]
+    B --> D[moduleB/api - Business]
+    
+    E[moduleA/impl] --> C
+    E --> D
+    E --> F[moduleC/api - Capability]
+    E --> G[moduleE/impl - Core]
+    
+    H[moduleB/impl] --> D
+    H --> G
+    
+    I[moduleC/impl] --> F
+    I --> G
+```
+
+### 🛠️ 技术栈
+
+**核心框架**
+
+- **Koin 3.4.0**: 依赖注入框架
+- **Kotlin 1.8.22**: 主要开发语言
+- **Android Gradle Plugin 7.1.3**: 构建工具
+
+**Android组件**
+
+- **AndroidX**: 现代Android开发库
+- **Material Design**: UI设计规范
+- **ConstraintLayout**: 布局管理
+
+**构建工具**
+
+- **KSP (Kotlin Symbol Processing)**: 注解处理
+- **Gradle**: 构建系统
+- **ProGuard**: 代码混淆
+
+### 🚀 快速开始
+
+#### 环境要求
 
 - Android Studio Arctic Fox或更高版本
-- JDK 11或更高版本
-- Android SDK API 33
+- JDK 8或更高版本
+- Android SDK API 21+
+- Gradle 7.2+
 
-### 构建项目
-
-1. 克隆项目：
+#### 构建项目
 
 ```bash
+# 克隆项目
 git clone <repository-url>
-cd koin-mutil-module
-```
+cd koin-multi-module
 
-2. 构建项目：
-
-```bash
+# 构建项目
 ./gradlew build
-```
 
-3. 运行应用：
-
-```bash
+# 运行应用
 ./gradlew :app:installDebug
 ```
 
-## 模块开发指南
+#### 添加新模块
 
-### 添加新的业务模块
+1. **创建模块结构**
 
-1. 在`components-business`下创建新模块目录
-2. 创建`api`和`impl`子模块
-3. 在`impl`模块的`build.gradle`中添加：
+```
+components-business/newModule/
+├── api/
+│   └── build.gradle
+└── impl/
+    └── build.gradle
+```
 
+2. **配置build.gradle**
 ```gradle
+// API模块
+apply from: rootProject.file('tools/gradle/common-library-config.gradle')
+
+// Impl模块
+apply from: rootProject.file('tools/gradle/common-library-config.gradle')
 apply from: rootProject.file('tools/gradle/koin-dependencies.gradle')
 ```
 
-4. 创建Koin模块：
+3. **定义Koin模块**
+```kotlin
+val newModule = module {
+    single<INewService> { NewServiceImpl() }
+}
+```
+
+### 📋 开发规范
+
+#### 模块命名规范
+
+- **API模块**: 定义接口，以`I`开头命名接口
+- **Impl模块**: 实现接口，以`Impl`结尾命名实现类
+- **包名**: 遵循`com.example.module.{layer}.{module}`格式
+
+#### 依赖注入规范
 
 ```kotlin
-@KoinModule
-fun yourModuleName() = module {
-        // 依赖配置
+// 接口定义
+interface IUserService {
+    fun getUser(id: String): User
+}
+
+// 实现类
+class UserServiceImpl(
+    private val repository: IUserRepository,
+    private val validator: IValidator
+) : IUserService {
+    override fun getUser(id: String): User {
+        // 实现逻辑
     }
+}
+
+// Koin模块定义
+val userModule = module {
+    single<IUserService> { UserServiceImpl(get(), get()) }
+}
 ```
 
-### KSP处理器配置
+#### 测试策略
 
-KSP处理器会自动扫描所有标记了`@KoinModule`注解的函数，并在app模块中生成`KoinModules`类。
+- **单元测试**: 针对业务逻辑和工具类
+- **集成测试**: 测试模块间交互
+- **UI测试**: 验证用户界面功能
 
-配置选项：
+### 🔍 架构优势
 
-- `koin.modules.collector`: 设置为"true"以启用模块收集
-- `koin.modules.package.name`: 生成类的包名（默认：com.example.modules）
-- `koin.modules.file.name`: 生成类的文件名（默认：KoinModules）
+#### 1. 可维护性
 
-## 项目配置
+- 模块化设计便于定位和修复问题
+- 清晰的依赖关系降低维护成本
+- 统一的配置管理简化项目维护
 
-### Gradle配置
+#### 2. 可扩展性
 
-主要的Gradle配置文件：
+- 新功能可以独立模块开发
+- 接口抽象支持多种实现方式
+- 依赖注入支持运行时替换实现
 
-- `build.gradle`: 根项目配置
-- `tools/gradle/koin-dependencies.gradle`: Koin依赖统一管理
-- 各模块的`build.gradle`: 模块特定配置
+#### 3. 可测试性
 
-### 版本管理
+- 接口抽象便于Mock测试
+- 依赖注入支持测试替身
+- 模块隔离降低测试复杂度
 
-项目使用统一的版本管理：
+#### 4. 团队协作
 
-- Kotlin: 1.8.22
-- KSP: 1.8.22-1.0.11
-- Android Gradle Plugin: 7.4.2
-- Gradle: 7.5
+- 模块边界清晰，支持并行开发
+- 接口契约明确，减少沟通成本
+- 统一规范提高代码质量
 
-## 故障排除
+### 📚 相关文档
 
-### 常见问题
+- [Koin官方文档](https://insert-koin.io/)
+- [Android架构指南](https://developer.android.com/jetpack/guide)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Gradle构建指南](https://docs.gradle.org/current/userguide/userguide.html)
 
-1. **KSP编译错误**
-    - 确保Kotlin和KSP版本兼容
-    - 清理构建缓存：`./gradlew clean`
-
-2. **模块未被自动收集**
-    - 检查`@KoinModule`注解是否正确添加
-    - 确认模块的`build.gradle`包含KSP配置
-
-3. **依赖冲突**
-    - 检查所有impl模块是否都应用了`koin-dependencies.gradle`
-    - 使用`./gradlew dependencies`检查依赖树
-
-### 清理缓存
-
-如果遇到构建问题，可以尝试清理所有缓存：
-
-```bash
-./gradlew clean
-rm -rf ~/.gradle/caches/
-./gradlew build
-```
-
-## 贡献指南
+### 🤝 贡献指南
 
 1. Fork项目
-2. 创建特性分支：`git checkout -b feature/your-feature`
-3. 提交更改：`git commit -am 'Add some feature'`
-4. 推送分支：`git push origin feature/your-feature`
-5. 创建Pull Request
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启Pull Request
 
-## 许可证
+### 📄 许可证
 
-本项目采用MIT许可证 - 查看[LICENSE](LICENSE)文件了解详情。
+本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 联系方式
+### 📞 联系方式
 
-如有问题或建议，请创建Issue或联系项目维护者。
+如有问题或建议，请通过以下方式联系：
+
+- 提交Issue: [GitHub Issues](https://github.com/your-repo/issues)
+- 邮箱: your-email@example.com
+
+---
+
+**注意**: 本项目仅用于学习和演示目的，展示Android多模块架构和Koin依赖注入的最佳实践。
