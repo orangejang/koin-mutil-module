@@ -41,6 +41,6 @@ dependencies {
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation project(':components-platform:moduleC:api')
-    implementation project(':components-framework:core:impl')
+    implementation project(':components-capability:moduleC:api')
+    implementation project(':components-core:core:impl')
 }

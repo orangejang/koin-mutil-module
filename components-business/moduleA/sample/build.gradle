@@ -42,5 +42,5 @@ dependencies {
     // 依赖模块B
     implementation project(':components-business:moduleB:impl')
     // 依赖模块C
-    implementation project(':components-platform:moduleC:impl')
+    implementation project(':components-capability:moduleC:impl')
 }

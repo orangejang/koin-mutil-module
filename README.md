@@ -20,11 +20,11 @@ koin-mutil-module/
 │   └── moduleB/
 │       ├── api/                  # 模块B的API接口
 │       └── impl/                 # 模块B的实现
-├── components-framework/          # 框架层组件
+├── components-core/          # 框架层组件
 │   └── core/
 │       ├── impl/                 # 核心框架实现
 │       └── sample/               # 核心框架示例
-├── components-platform/           # 平台层组件
+├── components-capability/           # 平台层组件
 │   └── moduleC/
 │       ├── api/                  # 模块C的API接口
 │       └── impl/                 # 模块C的实现

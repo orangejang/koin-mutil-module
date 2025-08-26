@@ -44,13 +44,13 @@ dependencies {
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    implementation project(':components-framework:core:impl')
+    implementation project(':components-core:core:impl')
     implementation project(':components-business:moduleA:api')
     implementation project(':components-business:moduleA:impl')
     implementation project(':components-business:moduleB:api')
     implementation project(':components-business:moduleB:impl')
-    implementation project(':components-platform:moduleC:api')
-    implementation project(':components-platform:moduleC:impl')
+    implementation project(':components-capability:moduleC:api')
+    implementation project(':components-capability:moduleC:impl')
 }
 
 ksp {
