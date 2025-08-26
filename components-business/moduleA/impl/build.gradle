@@ -4,14 +4,12 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
-// 应用公共配置
-apply from: rootProject.file('tools/gradle/common-android-config.gradle')
+// 应用Library公共配置
+apply from: rootProject.file('tools/gradle/common-library-config.gradle')
 // 应用koin依赖配置
-apply from: rootProject.file('tools/gradle/koin-dependencies.gradle')
+apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
 
 dependencies {
-
-
     // 依赖模块A
     implementation project(':components-business:moduleA:api')
     // 依赖模块B
