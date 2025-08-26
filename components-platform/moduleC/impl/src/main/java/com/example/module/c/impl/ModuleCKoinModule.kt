@@ -2,6 +2,7 @@ package com.example.module.c.impl
 
 import com.example.annotation.KoinModule
 import com.example.module.c.api.INameService
+import com.example.module.c.api.INameServiceFactory
 import org.koin.dsl.module
 
 /**
@@ -11,4 +12,5 @@ import org.koin.dsl.module
 fun moduleCModule() = module {
     // 提供NameService的单例实现
     single<INameService> { NameServiceImpl() }
+    single<INameServiceFactory> { NameServiceFactoryImpl() }
 }

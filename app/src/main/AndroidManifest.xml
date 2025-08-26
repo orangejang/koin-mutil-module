@@ -3,7 +3,7 @@
     package="com.example.koinapp">
 
     <application
-        android:name="com.example.module.core.impl.KoinApplication"
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/icon_launcher"
         android:label="Koin模块通信示例"
