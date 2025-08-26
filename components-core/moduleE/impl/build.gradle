@@ -4,40 +4,7 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
+// 应用公共配置
+apply from: rootProject.file('tools/gradle/common-android-config.gradle')
 // 应用koin依赖配置
 apply from: rootProject.file('tools/gradle/koin-dependencies.gradle')
-
-android {
-    compileSdkVersion 33
-
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 1
-        versionName "1.0"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.9.0'
-
-    // Koin
-    implementation "io.insert-koin:koin-android:$koin_version"
-}

@@ -1,0 +1,59 @@
+// Android 模块公共配置文件
+// Android 模块公共配置文件
+// 用于统一管理各个模块的通用配置
+
+// 设置公共配置到rootProject
+rootProject.ext {
+    // Android 版本配置
+    commonCompileSdkVersion = 33
+    commonMinSdkVersion = 21
+    commonTargetSdkVersion = 33
+    commonVersionCode = 1
+    commonVersionName = "1.0"
+
+    // Java 版本配置
+    commonJavaVersion = JavaVersion.VERSION_1_8
+    commonJvmTarget = '1.8'
+
+    // 依赖版本配置
+    commonCoreKtxVersion = '1.9.0'
+    commonAppCompatVersion = '1.6.1'
+    commonMaterialVersion = '1.8.0'
+}
+
+// 应用通用 Android 配置
+android {
+    compileSdkVersion rootProject.ext.commonCompileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.commonMinSdkVersion
+        targetSdkVersion rootProject.ext.commonTargetSdkVersion
+        versionCode rootProject.ext.commonVersionCode
+        versionName rootProject.ext.commonVersionName
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility rootProject.ext.commonJavaVersion
+        targetCompatibility rootProject.ext.commonJavaVersion
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.commonJvmTarget
+    }
+}
+
+// 应用通用依赖
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "androidx.core:core-ktx:${rootProject.ext.commonCoreKtxVersion}"
+
+    // Koin
+    implementation "io.insert-koin:koin-android:$koin_version"
+}
