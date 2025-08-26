@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.devtools.ksp'
 }
 
 android {
@@ -47,4 +48,10 @@ dependencies {
     implementation project(':components-business:moduleB:impl')
     implementation project(':components-platform:moduleC:api')
     implementation project(':components-platform:moduleC:impl')
+}
+
+ksp {
+    arg("koin.modules.collector", "true")
+    arg("koin.modules.package.name", "com.example.modules")
+    arg("koin.modules.file.name", "KoinModules")
 }

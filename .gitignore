@@ -11,3 +11,5 @@
 /components-platform/moduleC/impl/build/
 /components-framework/core/impl/build/
 /components-framework/core/sample/build/
+/components-build/annotation/build/
+/components-build/processor/build/

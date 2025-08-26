@@ -1,0 +1,36 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+    id 'maven-publish'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+
+// 配置发布
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            groupId = 'com.example'
+            artifactId = 'koin-annotation'
+            version = '1.0.0-SNAPSHOT'
+
+            pom {
+                name = 'Koin Annotation'
+                description = 'Koin模块注解库'
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

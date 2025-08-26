@@ -1,5 +1,6 @@
 package com.example.module.a.impl
 
+import androidx.annotation.Keep
 import com.example.module.a.api.IUserService
 import com.example.module.b.api.INumberService
 import com.example.module.c.api.INameService
@@ -8,6 +9,7 @@ import org.koin.dsl.module
 /**
  * ModuleA的Koin模块定义
  */
+@Keep
 val moduleAModule = module {
 
     includes(moduleCModule)
