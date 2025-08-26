@@ -7,6 +7,10 @@ import org.koin.core.module.Module
 class MyApplication : KoinApplication() {
 
     override fun getModules(): List<Module> {
-        return KoinModules.getAllModules()
+        val modules = KoinModules.getAllModules()
+        if (modules.isEmpty()) {
+            throw IllegalStateException("No Koin modules found， please check koin-modules.txt or KoinModules.kt")
+        }
+        return modules
     }
 }
