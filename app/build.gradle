@@ -4,6 +4,9 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
+// 应用koin依赖配置
+apply from: rootProject.file('tools/gradle/koin-dependencies.gradle')
+
 android {
     compileSdkVersion 33
 

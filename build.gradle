@@ -1,7 +1,7 @@
 buildscript {
     ext.kotlin_version = '1.8.22'
     ext.koin_version = '3.4.0'
-    ext.ksp_version = '1.8.0-1.0.9'
+    ext.ksp_version = '1.8.22-1.0.11'
 
     repositories {
         mavenLocal()
