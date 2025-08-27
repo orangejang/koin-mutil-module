@@ -1,6 +1,7 @@
 package com.example.processor
 
 import com.example.annotation.KoinModule
+import com.example.data.KoinModuleInfo
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -9,6 +10,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -18,6 +20,16 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
 import org.koin.core.module.Module
 import java.io.File
+
+/**
+ * 模块函数信息数据类
+ */
+data class ModuleFunctionInfo(
+    val packageName: String,
+    val functionName: String,
+    val moduleId: String,
+    val moduleName: String
+)
 
 class KoinModuleSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -37,16 +49,36 @@ class KoinModuleSymbolProcessor(
                 val packageName = symbol.packageName.asString()
                 val functionName = symbol.simpleName.asString()
 
-                logger.info("Found @KoinModule function: $packageName.$functionName")
+                // 提取注解参数
+                val koinModuleAnnotation = symbol.annotations.find {
+                    it.shortName.asString() == "KoinModule"
+                }
+
+                val moduleId = getAnnotationValue(koinModuleAnnotation, "id") ?: functionName
+                val moduleName = getAnnotationValue(koinModuleAnnotation, "name") ?: functionName
+
+                logger.info("Found @KoinModule function: $packageName.$functionName (id=$moduleId, name=$moduleName)")
                 // 将信息写入共享文件
-                writeToSharedFile(packageName, functionName)
+                writeToSharedFile(packageName, functionName, moduleId, moduleName)
             }
         }
 
         return emptyList()
     }
 
-    private fun writeToSharedFile(packageName: String, functionName: String) {
+    /**
+     * 从注解中获取参数值
+     */
+    private fun getAnnotationValue(annotation: KSAnnotation?, paramName: String): String? {
+        return annotation?.arguments?.find { it.name?.asString() == paramName }?.value?.toString()
+    }
+
+    private fun writeToSharedFile(
+        packageName: String,
+        functionName: String,
+        moduleId: String,
+        moduleName: String
+    ) {
         try {
             val filePath = options["koin.modules.collect.result.path"]
             val sharedDir = File(filePath)
@@ -55,7 +87,7 @@ class KoinModuleSymbolProcessor(
             }
 
             val sharedFile = File(sharedDir, FILE_NAME)
-            val moduleInfo = "$packageName:$functionName"
+            val moduleInfo = "$packageName:$functionName:$moduleId:$moduleName"
 
             // 读取现有内容，避免重复
             val existingLines = if (sharedFile.exists()) {
@@ -78,7 +110,7 @@ class KoinModuleSymbolProcessor(
         val shouldGenerateKoinModules = options["koin.modules.collector"] == "true"
 
         if (shouldGenerateKoinModules) {
-            val moduleFunctions = mutableListOf<Pair<String, String>>()
+            val moduleFunctions = mutableListOf<ModuleFunctionInfo>()
             // 从共享文件读取所有模块信息
             try {
                 val filePath = options["koin.modules.collect.result.path"] + "/" + FILE_NAME
@@ -89,8 +121,15 @@ class KoinModuleSymbolProcessor(
                     for (line in allModuleInfo) {
                         if (line.isNotBlank() && line.contains(":")) {
                             val parts = line.split(":")
-                            if (parts.size == 2) {
-                                moduleFunctions.add(parts[0] to parts[1])
+                            if (parts.size == 4) {
+                                moduleFunctions.add(
+                                    ModuleFunctionInfo(
+                                        packageName = parts[0],
+                                        functionName = parts[1],
+                                        moduleId = parts[2],
+                                        moduleName = parts[3]
+                                    )
+                                )
                             }
                         }
                     }
@@ -107,51 +146,64 @@ class KoinModuleSymbolProcessor(
         }
     }
 
-    private fun generateKoinModulesClass(moduleFunctions: List<Pair<String, String>>) {
-        val packageName = options["koin.modules.package.name"] ?: "com.cvte.ciot.koin.modules"
+    private fun generateKoinModulesClass(moduleFunctions: List<ModuleFunctionInfo>) {
+        val packageName = options["koin.modules.package.name"] ?: "com.example.modules"
         val fileName = options["koin.modules.file.name"] ?: "KoinModules"
-        val koinModule = Module::class.java
+        val koinModuleInfoClass = KoinModuleInfo::class.java
+        
         val fileBuilder = FileSpec.builder(packageName, fileName)
-            .addImport(koinModule.packageName, koinModule.simpleName)
+            .addImport(koinModuleInfoClass.packageName, koinModuleInfoClass.simpleName)
+            .addImport(Module::class.java.packageName, Module::class.java.simpleName)
 
         val koinModulesClass = TypeSpec.objectBuilder(fileName)
             .addKdoc("自动生成的Koin模块收集类\n")
             .addKdoc("包含所有被@KoinModule注解标记的模块\n")
             .addKdoc("总共收集了 ${moduleFunctions.size} 个模块\n")
 
-        // 添加getAllModules方法 - 使用反射调用
-        val getAllModulesFunc = FunSpec.builder("getAllModules")
-            .returns(LIST.parameterizedBy(ClassName(koinModule.packageName, koinModule.simpleName)))
+        // 添加getAllModuleInfos方法 - 返回ModuleInfo列表
+        val getAllModuleInfosFunc = FunSpec.builder("getAllModuleInfos")
+            .returns(
+                LIST.parameterizedBy(
+                    ClassName(
+                        koinModuleInfoClass.packageName,
+                        koinModuleInfoClass.simpleName
+                    )
+                )
+            )
             .addKdoc("获取所有Koin模块\n")
             .addKdoc("@return 所有模块的列表\n")
 
-        // 构建直接import调用代码（不使用反射）
+        // 构建代码
         if (moduleFunctions.isNotEmpty()) {
-            getAllModulesFunc.addStatement("val modules = mutableListOf<Module>()")
+            getAllModuleInfosFunc.addStatement("val modules = mutableListOf<KoinModuleInfo>()")
 
-            moduleFunctions.forEach { (pkg, func) ->
+            moduleFunctions.forEach { moduleFunc ->
                 // 添加import语句
-                fileBuilder.addImport(pkg, func)
+                fileBuilder.addImport(moduleFunc.packageName, moduleFunc.functionName)
 
-                // 直接调用函数
-                getAllModulesFunc.addStatement(
+                // 创建ModuleInfo实例
+                getAllModuleInfosFunc.addStatement(
                     """
                     try {
-                        modules.add($func())
-                        println("成功加载Koin模块: ${pkg}.$func")
+                        modules.add(KoinModuleInfo(
+                            id = "${moduleFunc.moduleId}",
+                            name = "${moduleFunc.moduleName}",
+                            module = ${moduleFunc.functionName}()
+                        ))
+                        println("成功加载Koin模块: ${moduleFunc.packageName}.${moduleFunc.functionName}")
                     } catch (ex: Exception) {
-                        println("模块加载失败: ${pkg}.$func - " + ex.javaClass.simpleName + ": " + ex.message)
+                        println("模块加载失败: ${moduleFunc.packageName}.${moduleFunc.functionName} - " + ex.javaClass.simpleName + ": " + ex.message)
                     }
                 """.trimIndent()
                 )
             }
 
-            getAllModulesFunc.addStatement("return modules")
+            getAllModuleInfosFunc.addStatement("return modules")
         } else {
-            getAllModulesFunc.addStatement("return emptyList()")
+            getAllModuleInfosFunc.addStatement("return emptyList()")
         }
 
-        koinModulesClass.addFunction(getAllModulesFunc.build())
+        koinModulesClass.addFunction(getAllModuleInfosFunc.build())
         fileBuilder.addType(koinModulesClass.build())
 
         // 写入文件
@@ -170,7 +222,7 @@ class KoinModuleSymbolProcessor(
                 }
             }
 
-            logger.info("Generated KoinModules.kt with ${moduleFunctions.size} modules using reflection")
+            logger.info("Generated KoinModules.kt with ${moduleFunctions.size} modules returning ModuleInfo")
         } catch (e: Exception) {
             logger.error("Failed to generate KoinModules.kt: ${e.message}")
         }

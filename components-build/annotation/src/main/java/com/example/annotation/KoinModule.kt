@@ -6,4 +6,14 @@ package com.example.annotation
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
-annotation class KoinModule
+annotation class KoinModule(
+    /**
+     * 模块的唯一标识ID
+     */
+    val id: String,
+
+    /**
+     * 模块的名称
+     */
+    val name: String
+)

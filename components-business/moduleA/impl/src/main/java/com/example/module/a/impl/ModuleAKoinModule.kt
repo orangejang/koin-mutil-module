@@ -10,7 +10,7 @@ import org.koin.dsl.module
 /**
  * ModuleA的Koin模块定义
  */
-@KoinModule
+@KoinModule(id = "moduleA", name = "用户服务模块")
 fun moduleAModule() = module {
 
     // 动态绑定NameService实现
