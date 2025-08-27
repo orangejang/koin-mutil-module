@@ -4,7 +4,7 @@ import org.koin.core.Koin
 import org.koin.core.context.GlobalContext
 import org.koin.core.module.Module
 
-class DynamicModuleLoader {
+class ModuleManager {
 
     private val koin: Koin = GlobalContext.get()
 
