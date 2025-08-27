@@ -107,6 +107,205 @@ val moduleAModule = module {
 - Factory：每次注入创建新实例
 - Scoped：特定作用域内共享
 
+### 🚀 模块动态加载与卸载
+
+#### 核心特性
+
+本项目实现了基于Koin的模块动态加载和卸载机制，支持运行时动态管理依赖注入模块，提供了灵活的模块化架构。
+
+#### 动态加载架构
+
+**1. 注解驱动的模块发现**
+
+使用`@KoinModule`注解标记需要动态管理的模块：
+
+```kotlin
+@KoinModule(id = "moduleA", name = "用户服务模块")
+fun moduleAModule() = module {
+        single<IUserService> { UserServiceImpl(get(), get()) }
+        factory<INameService> { INameServiceFactory.create() }
+    }
+```
+
+**2. 编译时模块收集**
+
+通过KSP（Kotlin Symbol Processing）在编译时自动收集所有标记的模块：
+
+```kotlin
+// 自动生成的KoinModules类
+object KoinModules {
+    fun getAllModuleInfos(): List<KoinModuleInfo> {
+        val modules = mutableListOf<KoinModuleInfo>()
+
+        modules.add(
+            KoinModuleInfo(
+                id = "moduleA",
+                name = "用户服务模块",
+                module = moduleAModule()
+            )
+        )
+
+        return modules
+    }
+}
+```
+
+**3. 运行时动态管理**
+
+通过`ModulesManager`实现模块的动态加载和卸载：
+
+```kotlin
+// 动态加载模块
+ModulesManager.getInstance().loadModule("moduleA")
+
+// 动态卸载模块
+ModulesManager.getInstance().unloadModule("moduleA")
+
+// 获取模块状态
+val moduleInfo = ModulesManager.getInstance().getModuleInfo("moduleA")
+println("模块状态: ${moduleInfo?.isLoaded}")
+```
+
+#### 实现原理
+
+**1. 注解处理器工作流程**
+
+```mermaid
+graph TD
+    A[编译时扫描@KoinModule注解] --> B[收集模块信息到共享文件]
+    B --> C[在指定模块生成KoinModules类]
+    C --> D[包含所有模块的创建方法]
+    D --> E[应用启动时加载所有模块]
+```
+
+**2. 模块生命周期管理**
+
+```kotlin
+class ModulesManager {
+    // 存储所有可用模块
+    private val allModules = CopyOnWriteArrayList<KoinModuleInfo>()
+
+    // 存储已加载模块状态
+    private val loadedModules = ConcurrentHashMap<String, ModuleInfo>()
+
+    // 动态加载模块
+    fun loadModule(moduleId: String) {
+        val moduleInfo = getKoinModuleInfo(moduleId)
+        GlobalContext.get().loadModules(listOf(moduleInfo.module))
+        // 更新状态并通知监听器
+    }
+
+    // 动态卸载模块
+    fun unloadModule(moduleId: String) {
+        val moduleInfo = loadedModules[moduleId]
+        GlobalContext.get().unloadModules(listOf(moduleInfo.module))
+        // 更新状态并通知监听器
+    }
+}
+```
+
+**3. 监听器机制**
+
+```kotlin
+interface IModuleManagerListener {
+    fun onModuleLoaded(moduleInfo: ModuleInfo)
+    fun onModuleUnloaded(moduleInfo: ModuleInfo)
+    fun onModuleOperationFailed(moduleId: String, operationType: OperationType, error: Throwable)
+}
+
+// 应用中监听模块状态变化
+class MyApplication : KoinApplication(), ModulesManager.IModuleManagerListener {
+    override fun onModuleLoaded(moduleInfo: ModuleInfo) {
+        Log.i("App", "模块已加载: ${moduleInfo.name}")
+    }
+
+    override fun onModuleUnloaded(moduleInfo: ModuleInfo) {
+        Log.i("App", "模块已卸载: ${moduleInfo.name}")
+    }
+}
+```
+
+#### 配置说明
+
+**1. 注解处理器配置**
+
+在需要使用动态加载的模块中应用处理器配置：
+
+```gradle
+// build.gradle
+apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
+```
+
+**2. 模块收集器配置**
+
+在指定模块（通常是core模块）中启用模块收集：
+
+```gradle
+ksp {
+    arg("koin.modules.collector", "true")
+    arg("koin.modules.package.name", "com.example.modules")
+    arg("koin.modules.file.name", "KoinModules")
+}
+```
+
+#### 使用场景
+
+**1. 插件化架构**
+
+- 支持功能模块的热插拔
+- 实现按需加载，减少内存占用
+- 支持A/B测试和灰度发布
+
+**2. 动态功能开关**
+
+```kotlin
+// 根据配置动态加载功能模块
+if (FeatureConfig.isUserModuleEnabled()) {
+    ModulesManager.getInstance().loadModule("moduleA")
+}
+```
+
+**3. 内存优化**
+
+```kotlin
+// 在不需要时卸载模块释放内存
+override fun onTrimMemory(level: Int) {
+    if (level >= TRIM_MEMORY_MODERATE) {
+        ModulesManager.getInstance().unloadModule("heavyModule")
+    }
+}
+```
+
+#### 最佳实践
+
+**1. 模块设计原则**
+
+- 保持模块间的松耦合
+- 避免循环依赖
+- 合理设计模块粒度
+
+**2. 错误处理**
+
+```kotlin
+ModulesManager.getInstance().addListener(object : IModuleManagerListener {
+    override fun onModuleOperationFailed(
+        moduleId: String,
+        operationType: OperationType,
+        error: Throwable
+    ) {
+        // 记录错误日志
+        // 实施降级策略
+        // 通知用户或重试
+    }
+})
+```
+
+**3. 性能考虑**
+
+- 避免频繁的加载/卸载操作
+- 在合适的时机进行模块管理
+- 监控模块状态变化的性能影响
+
 ### 🔧 构建配置架构
 
 #### 统一配置管理
@@ -194,9 +393,16 @@ graph TD
 
 **核心框架**
 
-- **Koin 3.4.0**: 依赖注入框架
+- **Koin 3.4.0**: 依赖注入框架，支持动态模块加载/卸载
 - **Kotlin 1.8.22**: 主要开发语言
 - **Android Gradle Plugin 7.1.3**: 构建工具
+
+**动态加载技术**
+
+- **KSP (Kotlin Symbol Processing)**: 编译时注解处理，自动收集模块信息
+- **@KoinModule注解**: 标记可动态管理的模块
+- **ModulesManager**: 运行时模块生命周期管理器
+- **KotlinPoet**: 代码生成库，用于生成模块收集类
 
 **Android组件**
 
@@ -206,9 +412,9 @@ graph TD
 
 **构建工具**
 
-- **KSP (Kotlin Symbol Processing)**: 注解处理
 - **Gradle**: 构建系统
 - **ProGuard**: 代码混淆
+- **线程安全集合**: ConcurrentHashMap, CopyOnWriteArrayList
 
 ### 🚀 快速开始
 
@@ -250,16 +456,28 @@ components-business/newModule/
 // API模块
 apply from: rootProject.file('tools/gradle/common-library-config.gradle')
 
-// Impl模块
+// Impl模块 - 支持动态加载
 apply from: rootProject.file('tools/gradle/common-library-config.gradle')
-apply from: rootProject.file('tools/gradle/koin-dependencies.gradle')
+apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
 ```
 
-3. **定义Koin模块**
+3. **定义动态Koin模块**
 ```kotlin
-val newModule = module {
+// 使用@KoinModule注解标记
+@KoinModule(id = "newModule", name = "新功能模块")
+fun newModuleModule() = module {
     single<INewService> { NewServiceImpl() }
 }
+```
+
+4. **运行时管理模块**
+
+```kotlin
+// 动态加载模块
+ModulesManager.getInstance().loadModule("newModule")
+
+// 动态卸载模块
+ModulesManager.getInstance().unloadModule("newModule")
 ```
 
 ### 📋 开发规范
