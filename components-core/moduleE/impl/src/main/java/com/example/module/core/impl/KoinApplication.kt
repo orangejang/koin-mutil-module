@@ -56,7 +56,6 @@ abstract class KoinApplication : Application(), ModulesManager.IModuleManagerLis
         ModulesManager.getInstance().run {
             addListener(this@KoinApplication)
             init(moduleInfos)
-            loadAllModules()
         }
     }
 
