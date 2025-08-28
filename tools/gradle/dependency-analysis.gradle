@@ -1,0 +1,235 @@
+allprojects {
+    task generateDependencyGraph {
+        description = 'Generate module dependency graph in mermaid and dot formats'
+        group = 'analysis'
+
+        doLast {
+            // 只在根项目执行一次
+            if (project != rootProject) {
+                return
+            }
+
+            def outputDir = file("${rootProject.projectDir}/build/dependency_analysis")
+            outputDir.mkdirs()
+
+            def modules = []
+            def dependencies = [:]
+            def layerStats = [:]
+
+            // 收集所有模块信息
+            rootProject.allprojects { proj ->
+                if (proj != rootProject && (proj.file('build.gradle').exists() || proj.file('build.gradle.kts').exists())) {
+                    def modulePath = proj.path.substring(1) // 移除开头的 ':'
+                    def relativePath = rootProject.projectDir.toPath().relativize(proj.projectDir.toPath()).toString()
+
+                    modules.add([
+                            name   : modulePath,
+                            path   : relativePath,
+                            project: proj
+                    ])
+
+                    // 统计分层信息
+                    def layer = getModuleLayer(relativePath)
+                    if (!layerStats.containsKey(layer)) {
+                        layerStats[layer] = []
+                    }
+                    layerStats[layer].add(relativePath)
+
+                    // 收集依赖关系
+                    dependencies[modulePath] = []
+                    try {
+                        proj.configurations.findAll { it.name in ['implementation', 'api', 'compile'] }.each { config ->
+                            config.dependencies.each { dep ->
+                                if (dep instanceof ProjectDependency) {
+                                    def depPath = dep.dependencyProject.path.substring(1)
+                                    dependencies[modulePath].add(depPath)
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        // 忽略配置错误，继续处理其他模块
+                    }
+                }
+            }
+
+            // 生成统计信息
+            generateStatistics(layerStats, outputDir)
+
+            // 生成 Mermaid 格式
+            generateMermaidGraph(modules, dependencies, outputDir)
+
+            // 生成 DOT 格式
+            generateDotGraph(modules, dependencies, outputDir)
+
+            // 尝试生成 PNG（如果安装了 dot 工具）
+            generatePngIfAvailable(outputDir)
+
+            println "依赖关系图已生成到: ${outputDir.absolutePath}"
+        }
+    }
+}
+
+def getModuleLayer(relativePath) {
+    if (relativePath.startsWith('app')) {
+        return 'app'
+    } else if (relativePath.startsWith('layer-presentation')) {
+        return '表现层'
+    } else if (relativePath.startsWith('layer-business')) {
+        return '业务层'
+    } else if (relativePath.startsWith('layer-capability')) {
+        return '能力层'
+    } else if (relativePath.startsWith('layer-core')) {
+        return '核心层'
+    } else {
+        return '其他'
+    }
+}
+
+def generateStatistics(layerStats, outputDir) {
+    def statsFile = new File(outputDir, 'module_statistics.txt')
+    def totalModules = layerStats.values().flatten().size()
+
+    statsFile.withWriter { writer ->
+        writer.println("总模块数量：${totalModules}个")
+        writer.println()
+
+        layerStats.each { layer, modules ->
+            writer.println("${layer}: ${modules.size()} 个模块，分别是${modules.join('，')}")
+        }
+    }
+
+    println "模块统计信息："
+    println "总模块数量：${totalModules}个"
+    layerStats.each { layer, modules ->
+        println "${layer}: ${modules.size()} 个模块，分别是${modules.join('，')}"
+    }
+}
+
+def generateMermaidGraph(modules, dependencies, outputDir) {
+    def mermaidFile = new File(outputDir, 'dependency_graph.mmd')
+
+    mermaidFile.withWriter { writer ->
+        writer.println('graph TD')
+        writer.println()
+
+        // 定义节点样式
+        writer.println('    %% 节点样式定义')
+        writer.println('    classDef app fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff')
+        writer.println('    classDef presentation fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#fff')
+        writer.println('    classDef business fill:#45b7d1,stroke:#333,stroke-width:2px,color:#fff')
+        writer.println('    classDef capability fill:#f9ca24,stroke:#333,stroke-width:2px,color:#333')
+        writer.println('    classDef core fill:#6c5ce7,stroke:#333,stroke-width:2px,color:#fff')
+        writer.println()
+
+        // 生成节点
+        modules.each { module ->
+            def nodeId = module.path.replace('/', '_').replace('-', '_')
+            def displayName = module.path
+            writer.println("    ${nodeId}[\"${displayName}\"]")
+        }
+        writer.println()
+
+        // 生成依赖关系
+        dependencies.each { moduleName, deps ->
+            def sourceNodeId = getNodeId(moduleName, modules)
+            deps.each { depName ->
+                def targetNodeId = getNodeId(depName, modules)
+                if (sourceNodeId && targetNodeId) {
+                    writer.println("    ${sourceNodeId} --> ${targetNodeId}")
+                }
+            }
+        }
+        writer.println()
+
+        // 应用样式
+        modules.each { module ->
+            def nodeId = module.path.replace('/', '_').replace('-', '_')
+            def layer = getModuleLayer(module.path)
+            def cssClass = getCssClass(layer)
+            writer.println("    class ${nodeId} ${cssClass}")
+        }
+    }
+}
+
+def generateDotGraph(modules, dependencies, outputDir) {
+    def dotFile = new File(outputDir, 'dependency_graph.dot')
+
+    dotFile.withWriter { writer ->
+        writer.println('digraph ModuleDependencies {')
+        writer.println('    rankdir=TB;')
+        writer.println('    node [shape=box, style=filled];')
+        writer.println()
+
+        // 定义节点
+        modules.each { module ->
+            def nodeId = "\"${module.path}\""
+            def layer = getModuleLayer(module.path)
+            def color = getNodeColor(layer)
+            writer.println("    ${nodeId} [label=\"${module.path}\", fillcolor=\"${color}\"];")
+        }
+        writer.println()
+
+        // 定义依赖关系
+        dependencies.each { moduleName, deps ->
+            def sourcePath = getModulePath(moduleName, modules)
+            deps.each { depName ->
+                def targetPath = getModulePath(depName, modules)
+                if (sourcePath && targetPath) {
+                    writer.println("    \"${sourcePath}\" -> \"${targetPath}\";")
+                }
+            }
+        }
+
+        writer.println('}')
+    }
+}
+
+def generatePngIfAvailable(outputDir) {
+    try {
+        def dotFile = new File(outputDir, 'dependency_graph.dot')
+        def pngFile = new File(outputDir, 'dependency_graph.png')
+
+        def process = "dot -Tpng ${dotFile.absolutePath} -o ${pngFile.absolutePath}".execute()
+        process.waitFor()
+
+        if (process.exitValue() == 0) {
+            println "PNG 图片已生成: ${pngFile.absolutePath}"
+        } else {
+            println "警告: 无法生成 PNG 图片，请确保已安装 Graphviz"
+        }
+    } catch (Exception e) {
+        println "警告: 无法生成 PNG 图片，请确保已安装 Graphviz: ${e.message}"
+    }
+}
+
+def getNodeId(moduleName, modules) {
+    def module = modules.find { it.name == moduleName }
+    return module ? module.path.replace('/', '_').replace('-', '_') : null
+}
+
+def getModulePath(moduleName, modules) {
+    def module = modules.find { it.name == moduleName }
+    return module ? module.path : null
+}
+
+def getCssClass(layer) {
+    switch (layer) {
+        case 'app': return 'app'
+        case '表现层': return 'presentation'
+        case '业务层': return 'business'
+        case '能力层': return 'capability'
+        case '核心层': return 'core'
+        default: return 'business'
+    }
+}
+
+def getNodeColor(layer) {
+    switch (layer) {
+        case 'app': return '#ff6b6b'
+        case '表现层': return '#4ecdc4'
+        case '业务层': return '#45b7d1'
+        case '能力层': return '#f9ca24'
+        case '核心层': return '#6c5ce7'
+        default: return '#95a5a6'
+    }
+}
