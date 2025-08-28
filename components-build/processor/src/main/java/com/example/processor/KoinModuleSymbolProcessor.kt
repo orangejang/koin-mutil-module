@@ -43,12 +43,44 @@ class KoinModuleSymbolProcessor(
         private const val MODULES_FILE_NAME = "koin-modules.txt"
     }
 
+    // 用于缓存当前模块中@KoinModule注解的个数和函数信息
+    private var koinModuleCount = 0
+    private val koinModuleFunctions = mutableListOf<String>()
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.info("KSP: Starting to process symbols")
         // 处理@KoinModule注解的函数
         val koinModuleSymbols =
             resolver.getSymbolsWithAnnotation(KoinModule::class.java.canonicalName)
         logger.info("KSP: Found ${koinModuleSymbols.toList().size} symbols with @KoinModule annotation")
+
+        // 统计当前模块中@KoinModule注解的个数
+        koinModuleSymbols.forEach { symbol ->
+            if (symbol is KSFunctionDeclaration) {
+                koinModuleCount++
+                val packageName = symbol.packageName.asString()
+                val functionName = symbol.simpleName.asString()
+                koinModuleFunctions.add("$packageName.$functionName")
+
+                // 如果发现超过1个@KoinModule注解，立即抛出异常
+                if (koinModuleCount > 1) {
+                    val errorMessage = """
+                        编译错误：当前模块中发现多个 @KoinModule 注解！
+                        每个模块最多只能有一个 @KoinModule 注解。
+                        
+                        当前模块中发现的 @KoinModule 函数：
+                        ${koinModuleFunctions.joinToString("\n                        - ")}
+                        
+                        请确保每个模块只有一个 @KoinModule 注解的函数。
+                    """.trimIndent()
+
+                    logger.error(errorMessage)
+                    throw IllegalStateException(errorMessage)
+                }
+            }
+        }
+
+        // 处理验证通过的函数
         koinModuleSymbols.forEach { symbol ->
             if (symbol is KSFunctionDeclaration) {
                 val packageName = symbol.packageName.asString()
@@ -70,7 +102,6 @@ class KoinModuleSymbolProcessor(
                 writeModuleToSharedFile(packageName, functionName, moduleId, moduleName, entryClass)
             }
         }
-
 
         return emptyList()
     }
