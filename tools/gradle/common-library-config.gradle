@@ -35,11 +35,6 @@ android {
     kotlinOptions {
         jvmTarget = rootProject.ext.commonJvmTarget
     }
-
-    lintOptions {
-        abortOnError false
-        checkReleaseBuilds false
-    }
 }
 
 // 应用通用依赖

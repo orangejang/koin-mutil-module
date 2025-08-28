@@ -1,10 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'com.google.devtools.ksp'
 }
 
 // 应用Library公共配置
 apply from: rootProject.file('tools/gradle/common-library-config.gradle')
-// 应用koin依赖配置
-apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
