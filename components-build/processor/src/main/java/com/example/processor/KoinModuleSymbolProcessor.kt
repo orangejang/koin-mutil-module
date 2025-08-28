@@ -92,8 +92,8 @@ class KoinModuleSymbolProcessor(
             is KSType -> {
                 val declaration = value.declaration
                 val qualifiedName = declaration.qualifiedName?.asString()
-                // 过滤掉Any类型
-                if (qualifiedName == "kotlin.Any") null else qualifiedName
+                // 过滤掉IModuleLifecycle接口本身（默认值）
+                if (qualifiedName == IModuleLifecycle::class.java.canonicalName) null else qualifiedName
             }
 
             else -> value?.toString()
@@ -145,10 +145,15 @@ class KoinModuleSymbolProcessor(
             try {
                 val filePath = options["koin.modules.collect.result.path"] + "/" + MODULES_FILE_NAME
                 val moduleInfoFile = File(filePath)
+                logger.info("KSP: Looking for shared file at: $filePath")
+                logger.info("KSP: File exists: ${moduleInfoFile.exists()}")
+
                 if (moduleInfoFile.exists()) {
                     val allModuleInfo = moduleInfoFile.readLines()
+                    logger.info("KSP: Read ${allModuleInfo.size} lines from shared file")
 
                     for (line in allModuleInfo) {
+                        logger.info("KSP: Processing line: $line")
                         if (line.isNotBlank() && line.contains(":")) {
                             val parts = line.split(":")
                             if (parts.size >= 4) {
@@ -164,10 +169,11 @@ class KoinModuleSymbolProcessor(
                                         entryClass = entryClass
                                     )
                                 )
+                                logger.info("KSP: Added module: ${parts[2]}")
                             }
                         }
                     }
-                    logger.info("Loaded ${moduleFunctions.size} modules from shared file")
+                    logger.info("KSP: Loaded ${moduleFunctions.size} modules from shared file")
                 }
             } catch (e: Exception) {
                 logger.warn("Could not read shared module info: ${e.message}")

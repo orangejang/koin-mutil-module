@@ -1,5 +1,6 @@
 package com.example.annotation
 
+import com.example.data.IModuleLifecycle
 import kotlin.reflect.KClass
 
 /**
@@ -22,5 +23,5 @@ annotation class KoinModule(
     /**
      * 模块入口类，必须实现IModuleLifecycle接口
      */
-    val entry: KClass<*> = Any::class
+    val entry: KClass<out IModuleLifecycle> = IModuleLifecycle::class
 )
