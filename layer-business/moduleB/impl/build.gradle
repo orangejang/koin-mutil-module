@@ -11,5 +11,5 @@ apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
 
 dependencies {
     // 模块特定依赖
-    implementation project(':components-business:moduleB:api')
+    implementation project(':layer-business:moduleB:api')
 }

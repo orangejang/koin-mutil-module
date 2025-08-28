@@ -21,8 +21,8 @@ def applyKoinDependencies(Project project) {
 
 // 本地依赖，用于开发阶段
 dependencies {
-    implementation project(':components-build:annotation')
-    ksp project(':components-build:processor')
+    implementation project(':build-tools:annotation')
+    ksp project(':build-tools:processor')
 }
 
 // 为当前项目应用 Koin 依赖

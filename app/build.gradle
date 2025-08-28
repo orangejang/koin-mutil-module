@@ -20,17 +20,17 @@ dependencies {
     implementation "com.google.android.material:material:${rootProject.ext.commonMaterialVersion}"
 
     // 依赖表现层moduleD
-    implementation project(':components-presentation:moduleD')
+    implementation project(':layer-presentation:moduleD')
 
     // 业务层moduleA, moduleB
-    implementation project(':components-business:moduleA:impl')
-    implementation project(':components-business:moduleB:impl')
+    implementation project(':layer-business:moduleA:impl')
+    implementation project(':layer-business:moduleB:impl')
 
     // 能力层moduleC
-    implementation project(':components-capability:moduleC:impl')
+    implementation project(':layer-capability:moduleC:impl')
 
     // 基础层core
-    implementation project(':components-core:moduleE:impl')
+    implementation project(':layer-core:moduleE:impl')
 }
 
 ksp {

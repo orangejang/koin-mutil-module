@@ -10,11 +10,6 @@ apply from: rootProject.file('tools/gradle/common-library-config.gradle')
 apply from: rootProject.file('tools/gradle/common-processor-config.gradle')
 
 dependencies {
-    // 依赖模块A
-    implementation project(':components-business:moduleA:api')
-    // 依赖模块B
-    implementation project(':components-business:moduleB:api')
-    // 依赖模块C
-    implementation project(':components-capability:moduleC:api')
-    implementation project(':components-core:moduleE:impl')
+    // 模块特定依赖
+    implementation project(':layer-capability:moduleC:api')
 }

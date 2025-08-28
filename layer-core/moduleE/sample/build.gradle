@@ -6,5 +6,5 @@ plugins {
 apply from: project.rootProject.file('tools/gradle/common-android-config.gradle')
 
 dependencies {
-    implementation project(':components-core:moduleE:impl')
+    implementation project(':layer-core:moduleE:impl')
 }

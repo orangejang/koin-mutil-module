@@ -12,10 +12,10 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // 依赖业务层API（用于聚合服务）
-    implementation project(':components-business:moduleA:api')
-    implementation project(':components-business:moduleB:api')
+    implementation project(':layer-business:moduleA:api')
+    implementation project(':layer-business:moduleB:api')
 
     // 添加ModuleManager相关依赖
-    implementation project(':components-core:moduleE:impl')
+    implementation project(':layer-core:moduleE:impl')
 
 }
