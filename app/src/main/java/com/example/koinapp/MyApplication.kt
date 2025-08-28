@@ -7,6 +7,6 @@ import com.example.modules.KoinModules
 class MyApplication : KoinApplication() {
 
     override fun getKoinModuleInfos(): List<KoinModuleInfo> {
-        return KoinModules.getAllModuleInfos()
+        return KoinModules.getModules()
     }
 }

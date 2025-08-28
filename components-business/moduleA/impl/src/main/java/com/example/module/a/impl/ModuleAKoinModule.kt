@@ -9,8 +9,13 @@ import org.koin.dsl.module
 
 /**
  * ModuleA的Koin模块定义
+ * 使用entry参数指定模块入口类
  */
-@KoinModule(id = "moduleA", name = "用户服务模块")
+@KoinModule(
+    id = "moduleA",
+    name = "用户服务模块",
+    entry = ModuleAEntry::class
+)
 fun moduleAModule() = module {
 
     // 动态绑定NameService实现

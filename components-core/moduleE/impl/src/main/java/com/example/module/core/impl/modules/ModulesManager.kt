@@ -82,8 +82,8 @@ class ModulesManager private constructor() {
                 return
             }
 
-            val module = getKoinModuleInfo(moduleId)?.module
-            if (module == null) {
+            val koinModuleInfo = getKoinModuleInfo(moduleId)
+            if (koinModuleInfo == null) {
                 notifyOperationFailed(
                     moduleId, OperationType.UNLOAD,
                     IllegalStateException("Module $moduleId not found in allModules")
@@ -92,7 +92,8 @@ class ModulesManager private constructor() {
             }
 
             // 从Koin容器中卸载模块
-            GlobalContext.get().unloadModules(listOf(module))
+            GlobalContext.get().unloadModules(listOf(koinModuleInfo.module))
+            koinModuleInfo.lifecycle?.onDestroy()
 
             // 更新模块状态
             val unloadedModuleInfo = moduleInfo.copy(isLoaded = false)
@@ -122,6 +123,7 @@ class ModulesManager private constructor() {
 
             // 加载模块到Koin容器
             GlobalContext.get().loadModules(listOf(koinModuleInfo.module))
+            koinModuleInfo.lifecycle?.onCreate()
 
             // 更新模块状态
             val loadedModuleInfo = ModuleInfo.create(koinModuleInfo, isLoaded = true)
