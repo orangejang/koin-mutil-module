@@ -1,0 +1,20 @@
+// IMPL模块专用配置，包含Koin依赖
+// 应用基础配置
+apply from: rootProject.file('tools/gradle/common-base-config.gradle')
+
+// IMPL模块特定配置
+android {
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+// IMPL模块专用依赖
+dependencies {
+    // Koin依赖注入框架
+    implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-core:$koin_version"
+
+    // 其他IMPL模块常用依赖
+    implementation "androidx.core:core-ktx:${rootProject.ext.commonCoreKtxVersion}"
+}

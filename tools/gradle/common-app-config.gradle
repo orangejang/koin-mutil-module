@@ -1,0 +1,28 @@
+// 应用模块专用配置
+// 应用基础配置
+apply from: rootProject.file('tools/gradle/common-base-config.gradle')
+
+// 应用模块特定配置
+android {
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+    }
+
+    defaultConfig {
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+// 应用模块专用依赖
+dependencies {
+    // UI相关依赖
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.commonAppCompatVersion}"
+    implementation "com.google.android.material:material:${rootProject.ext.commonMaterialVersion}"
+    implementation "androidx.core:core-ktx:${rootProject.ext.commonCoreKtxVersion}"
+
+    // Koin依赖注入框架
+    implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-core:$koin_version"
+}

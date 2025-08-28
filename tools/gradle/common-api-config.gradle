@@ -1,0 +1,18 @@
+// API模块专用配置，不包含Koin依赖
+// 应用基础配置
+apply from: rootProject.file('tools/gradle/common-base-config.gradle')
+
+// API模块特定配置
+android {
+    // API模块通常不需要额外的配置
+    buildFeatures {
+        buildConfig false
+        resValues false
+    }
+}
+
+// API模块专用依赖（轻量化）
+dependencies {
+    // API模块通常只需要基础的Kotlin和Android依赖
+    // 不包含Koin等重型依赖
+}

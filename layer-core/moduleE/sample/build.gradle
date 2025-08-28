@@ -3,7 +3,14 @@ plugins {
     id 'kotlin-android'
 }
 
-apply from: project.rootProject.file('tools/gradle/common-android-config.gradle')
+// 应用APP模块专用配置
+apply from: rootProject.file('tools/gradle/common-app-config.gradle')
+
+android {
+    defaultConfig {
+        applicationId "com.example.modulee.sample"
+    }
+}
 
 dependencies {
     implementation project(':layer-core:moduleE:impl')

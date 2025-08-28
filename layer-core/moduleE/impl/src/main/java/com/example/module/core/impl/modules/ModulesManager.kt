@@ -51,7 +51,7 @@ class ModulesManager private constructor() {
      * 一次性加载所有模块
      */
     internal fun loadAllModules() {
-        allModules.forEach { moduleInfo ->
+        for (moduleInfo in allModules) {
             loadModule(moduleInfo, true)
         }
     }
@@ -145,7 +145,7 @@ class ModulesManager private constructor() {
      * 通知模块加载成功
      */
     private fun notifyModuleLoaded(moduleInfo: ModuleInfo) {
-        listeners.forEach { listener ->
+        for (listener in listeners) {
             try {
                 listener.onModuleLoaded(moduleInfo)
             } catch (e: Exception) {
@@ -158,7 +158,7 @@ class ModulesManager private constructor() {
      * 通知模块卸载成功
      */
     private fun notifyModuleUnloaded(moduleInfo: ModuleInfo) {
-        listeners.forEach { listener ->
+        for (listener in listeners) {
             try {
                 listener.onModuleUnloaded(moduleInfo)
             } catch (e: Exception) {
@@ -175,7 +175,7 @@ class ModulesManager private constructor() {
         operationType: OperationType,
         error: Throwable
     ) {
-        listeners.forEach { listener ->
+        for (listener in listeners) {
             try {
                 listener.onModuleOperationFailed(moduleId, operationType, error)
             } catch (e: Exception) {

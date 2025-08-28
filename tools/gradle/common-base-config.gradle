@@ -1,0 +1,39 @@
+// 通用基础配置，供所有Android模块使用
+android {
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 33
+
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+// 通用依赖
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+
+// 通用扩展属性 - 设置到rootProject级别
+rootProject.ext {
+    commonAppCompatVersion = '1.6.1'
+    commonMaterialVersion = '1.8.0'
+    commonCoreKtxVersion = '1.9.0'
+}
