@@ -40,7 +40,6 @@ abstract class KoinApplication : Application(), ModulesManager.IModuleManagerLis
                 androidLogger(Level.DEBUG)
                 // 提供Android上下文
                 androidContext(context)
-                // 加载所有模块
             }
             hasInitKoin = true
         }
