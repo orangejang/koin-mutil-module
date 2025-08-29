@@ -9,6 +9,9 @@ import com.example.module.core.impl.modules.data.ModuleInfo
 import com.example.module.core.impl.modules.data.OperationType
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.android.logger.AndroidLogger
+import org.koin.core.annotation.KoinInternalApi
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
@@ -32,6 +35,7 @@ abstract class KoinApplication : Application(), ModulesManager.IModuleManagerLis
         loadAllModules()
     }
 
+    @OptIn(KoinInternalApi::class)
     private fun initKoin(context: Context) {
         if (!hasInitKoin) {
             // 初始化Koin
@@ -40,8 +44,8 @@ abstract class KoinApplication : Application(), ModulesManager.IModuleManagerLis
                 androidLogger(Level.DEBUG)
                 // 提供Android上下文
                 androidContext(context)
-                // 加载所有模块
             }
+            GlobalContext.get().setupLogger(AndroidLogger(Level.DEBUG))
             hasInitKoin = true
         }
     }
