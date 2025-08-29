@@ -541,7 +541,7 @@ fun moduleAModule() = module {
 ### 核心技术
 
 - **Kotlin**: 主要开发语言
-- **Koin 3.4.0**: 依赖注入框架
+- **Koin 3.4.3**: 依赖注入框架
 - **KSP (Kotlin Symbol Processing)**: 注解处理
 - **Android Gradle Plugin**: 构建工具
 

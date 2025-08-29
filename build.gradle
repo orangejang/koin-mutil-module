@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.8.22'
-    ext.koin_version = '3.4.0'
+    ext.koin_version = '3.4.3'
     ext.ksp_version = '1.8.22-1.0.11'
 
     repositories {
