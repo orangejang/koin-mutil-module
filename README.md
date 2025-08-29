@@ -965,6 +965,78 @@ fun someOtherModule() = module {
 
 本项目采用 MIT 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
 
+## 生成项目模块间依赖关系图
+
+### 功能概述
+
+项目提供了自动生成模块间依赖关系图的功能，可以直观地展示各模块之间的依赖关系和分层架构。该功能通过Gradle任务自动收集项目中的所有模块信息，生成多种格式的依赖关系图。
+
+### 使用方法
+
+#### 1. 执行生成命令
+
+在项目根目录下执行以下命令：
+
+```bash
+./tools/scripts/generate_dependency_graph.sh
+```
+
+#### 2. 生成的文件
+
+执行完成后，会在 `build/dependency_analysis/` 目录下生成以下文件：
+
+- **dependency_graph.mmd**: Mermaid格式的依赖关系图
+- **dependency_graph.dot**: DOT格式的依赖关系图
+- **dependency_graph.png**: PNG格式的可视化图片（需要安装Graphviz）
+- **module_statistics.txt**: 模块统计信息
+
+#### 3. 统计信息示例
+
+```
+模块统计信息：
+总模块数量：13个
+app: 1 个模块，分别是app
+其他: 2 个模块，分别是build-tools/annotation，build-tools/processor
+表现层: 1 个模块，分别是layer-presentation/moduleD
+业务层: 5 个模块，分别是layer-business/moduleA/api，layer-business/moduleA/impl，layer-business/moduleA/sample，layer-business/moduleB/api，layer-business/moduleB/impl
+能力层: 2 个模块，分别是layer-capability/moduleC/api，layer-capability/moduleC/impl
+核心层: 2 个模块，分别是layer-core/moduleE/impl，layer-core/moduleE/sample
+```
+
+### 技术实现
+
+#### 1. 自动模块发现
+
+- 使用Gradle API自动扫描项目中的所有子模块
+- 通过检查`build.gradle`或`build.gradle.kts`文件确定有效模块
+- 基于目录结构自动分类模块所属层级
+
+#### 2. 依赖关系分析
+
+- 自动解析模块间的依赖关系
+- 支持`implementation`、`api`等多种依赖类型
+- 生成完整的依赖关系图谱
+
+#### 3. 多格式输出
+
+- **Mermaid格式**: 适用于在线预览和文档嵌入
+- **DOT格式**: 适用于Graphviz工具链
+- **PNG图片**: 直接可视化查看
+- **统计文本**: 详细的模块数量和分布信息
+
+### 自定义配置
+
+如需修改生成逻辑，可以编辑以下文件：
+
+- `tools/gradle/dependency-analysis.gradle`: 核心分析逻辑
+- `tools/scripts/generate_dependency_graph.sh`: 执行脚本
+
+### 注意事项
+
+1. **模块识别**: 只有包含`build.gradle`或`build.gradle.kts`文件的目录才被识别为模块
+2. **PNG生成**: 需要系统安装Graphviz工具才能生成PNG格式图片
+3. **路径规范**: 模块名称使用基于根目录的相对路径表示
+
 ## 联系方式
 
 如有问题或建议，请通过以下方式联系：
