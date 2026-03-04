@@ -76,11 +76,11 @@
 
 #### 1. 分层架构
 
-- **App Module**: 应用程序入口，负责整个应用的启动和配置
+- **App Module**: 应用程序入口，包含继承自 `KoinApplication` 的应用类，负责提供模块列表
 - **Presentation Layer (表现层)**: 包含UI相关组件，如Activity、Fragment等
 - **Business Layer (业务层)**: 包含核心业务逻辑模块
 - **Capability Layer (能力层)**: 提供通用能力和服务
-- **Core Layer (核心层)**: 提供基础功能和核心组件
+- **Core Layer (核心层)**: 提供基础功能和核心组件，包括 `KoinApplication`、`ModulesManager`
 
 #### 2. 模块组织方式
 
@@ -358,49 +358,67 @@ object KoinModules {
 
 ### 4. 动态加载和卸载机制
 
-#### 模块管理器实现
+#### 模块管理器实现（ModulesManager）
+
+`ModulesManager` 是一个单例类，负责所有Koin模块的动态装载和卸载，并通过监听器接口通知调用方操作结果。
+
 ```kotlin
-class ModuleManager {
-  private val loadedModules = mutableMapOf<String, KoinModuleInfo>()
+// layer-core/moduleE/impl - ModulesManager.kt
+class ModulesManager private constructor() {
 
-  fun loadAllModules() {
-    val allModules = KoinModules.getModules()
+  // 初始化管理器并依次将所有模块加载到Koin容器
+  fun init(koinModuleInfos: List<KoinModuleInfo>) { ... }
 
-    allModules.forEach { moduleInfo ->
-      try {
-        // 1. 启动Koin模块
-        startKoin { modules(moduleInfo.module) }
+  // 动态加载指定模块
+  fun loadModule(moduleId: String, forceLoad: Boolean = false) { ... }
 
-        // 2. 调用生命周期onCreate方法
-        moduleInfo.lifecycle?.onCreate()
+  // 动态卸载指定模块
+  fun unloadModule(moduleId: String) {
+    // 1. 调用生命周期onDestroy方法
+    koinModuleInfo.lifecycle?.onDestroy()
 
-        // 3. 记录已加载模块
-        loadedModules[moduleInfo.id] = moduleInfo
+    // 2. 从Koin容器中卸载模块
+    GlobalContext.get().unloadModules(listOf(koinModuleInfo.module))
 
-        println("模块 ${moduleInfo.name} 加载成功")
-      } catch (e: Exception) {
-        println("模块 ${moduleInfo.name} 加载失败: ${e.message}")
-      }
-    }
+    // 3. 通知监听器
+    notifyModuleUnloaded(unloadedModuleInfo)
   }
 
-  fun unloadModule(moduleId: String) {
-    loadedModules[moduleId]?.let { moduleInfo ->
-      try {
-        // 1. 调用生命周期onDestroy方法
-        moduleInfo.lifecycle?.onDestroy()
+  // 模块管理监听器接口
+  interface IModuleManagerListener {
+    fun onModuleLoaded(moduleInfo: ModuleInfo)
+    fun onModuleUnloaded(moduleInfo: ModuleInfo)
+    fun onModuleOperationFailed(moduleId: String, operationType: OperationType, error: Throwable)
+  }
 
-        // 2. 从Koin中卸载模块
-        unloadKoinModule(moduleInfo.module)
+  companion object {
+    fun getInstance(): ModulesManager { ... }
+  }
+}
+```
 
-        // 3. 移除记录
-        loadedModules.remove(moduleId)
+#### 应用程序集成（KoinApplication）
 
-        println("模块 ${moduleInfo.name} 卸载成功")
-      } catch (e: Exception) {
-        println("模块 ${moduleInfo.name} 卸载失败: ${e.message}")
-      }
-    }
+`KoinApplication` 是一个抽象基类，继承自 `Application`，封装了Koin初始化和模块加载逻辑。子类只需实现 `getKoinModuleInfos()` 方法提供模块列表即可：
+
+```kotlin
+// layer-core/moduleE/impl - KoinApplication.kt
+abstract class KoinApplication : Application(), ModulesManager.IModuleManagerListener {
+
+  override fun onCreate() {
+    super.onCreate()
+    initKoin(this)    // 初始化Koin容器
+    loadAllModules()  // 加载所有模块
+  }
+
+  // 子类实现此方法提供模块信息列表（通常返回 KoinModules.getModules()）
+  protected abstract fun getKoinModuleInfos(): List<KoinModuleInfo>
+}
+
+// app - MyApplication.kt
+class MyApplication : KoinApplication() {
+  override fun getKoinModuleInfos(): List<KoinModuleInfo> {
+    return KoinModules.getModules()
   }
 }
 ```
@@ -409,9 +427,10 @@ class ModuleManager {
 
 1. **编译时收集**: KSP注解处理器扫描所有`@KoinModule`注解的函数
 2. **信息汇总**: 将模块信息写入共享文件，在收集器模块中生成`KoinModules`类
-3. **运行时加载**: 通过`KoinModules.getModules()`获取所有模块信息
-4. **依次加载**: 遍历模块列表，依次加载每个模块到Koin容器
-5. **生命周期管理**: 调用模块的生命周期方法进行初始化和清理
+3. **应用启动**: `KoinApplication.onCreate()` 自动初始化Koin容器并调用 `getKoinModuleInfos()`
+4. **模块初始化**: `ModulesManager.init()` 接收模块列表，内部为每个模块调用 `loadModule()` 加载到Koin容器
+5. **生命周期管理**: 加载时调用 `lifecycle.onCreate()`，卸载时调用 `lifecycle.onDestroy()`
+6. **运行时操作**: 可通过 `ModulesManager.loadModule(id)` / `unloadModule(id)` 动态操作
 
 ## 模块的生命周期
 
